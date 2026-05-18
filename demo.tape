@@ -1,12 +1,12 @@
 Output demo.gif
 Set FontSize 16
-Set Width 900
-Set Height 540
+Set Width 720
+Set Height 432
 Set FontFamily "JetBrains Mono"
 Set Theme "Dracula"
 Set Padding 24
-Set Framerate 15
-Set PlaybackSpeed 1.5
+Set Framerate 10
+Set PlaybackSpeed 1.8
 
 # Step 1: Show help
 Type "/home/chirs/Projects/ceph-calc/ceph-calc --help" Sleep 300ms
