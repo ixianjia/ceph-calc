@@ -2,6 +2,8 @@
 
 Ceph capacity planning CLI tool — input target usable capacity, get a complete hardware plan and production-ready cephadm spec.
 
+![demo](demo.gif)
+
 ```bash
 # Interactive wizard (9 steps, zero dependencies)
 ceph-calc
@@ -15,6 +17,8 @@ ceph-calc --usable 100TB --compare
 # Generate full cephadm spec with deployment guide
 ceph-calc --usable 100TB --repl 3 --services 3 --gen-spec > cluster.yaml
 ```
+
+[中文文档 🇨🇳](README.zh-CN.md)
 
 ## Features
 
@@ -151,7 +155,7 @@ ceph-calc --preset all-nvme    # 100TB, 3x repl, 4TB NVMe
 
 ## How it works
 
-### Calculation logic
+### Capacity calculation
 
 ```
 usable = raw / protection_overhead × safety_ratio
@@ -167,10 +171,10 @@ EC 6+2:      overhead = (6+2)/6 = 1.33
 |-----------|-----|-----|------|
 | CPU threads/OSD | 3 (min 1, rec 3) | 4 | 6 (min 4, rec 6) |
 | RAM factor | OSD×4GB×2+OS, ×1.2 | same | OSD×6GB×2.5+OS, ×1.2 |
-| DB/WAL offload | 1 SSD per HDD OSD | not needed | not needed |
-| Network cluster | 10-25GbE | 25GbE | 25-100GbE |
+| DB/WAL offload | SSD per HDD OSD | not needed | not needed |
+| Cluster network | 10-25GbE | 25GbE | 25-100GbE |
 
-RAM formula from official docs: `total > (OSDs × osd_memory_target(4GB) × 2)` plus 20% extra for recovery spikes.
+RAM formula from official docs: `total > (OSDs × osd_memory_target(4GB) × 2)`, plus 20% extra for recovery spikes.
 
 ### PG calculation
 
