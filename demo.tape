@@ -1,7 +1,7 @@
 Output demo.gif
-Set FontSize 16
-Set Width 720
-Set Height 432
+Set FontSize 14
+Set Width 912
+Set Height 540
 Set FontFamily "JetBrains Mono"
 Set Theme "Dracula"
 Set Padding 24
