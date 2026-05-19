@@ -57,16 +57,19 @@ type Input struct {
 }
 
 type Result struct {
-	Input         Input
-	Nodes         int
-	OSDsPerNode   int
-	TotalOSDs     int
-	RawCapacity   uint64
+	Input          Input
+	Nodes          int
+	OSDsPerNode    int
+	TotalOSDs      int
+	RawCapacity    uint64
 	UsableCapacity uint64
-	Efficiency    float64
-	Network       NetworkRecommendation
-	PGSuggestions []PGSuggestion
-	Hardware      HardwareEstimate
+	Efficiency     float64
+	Network        NetworkRecommendation
+	PGSuggestions  []PGSuggestion
+	Hardware       HardwareEstimate
+	IsAutoNodes    bool
+	MinSafeNodes   int
+	NodeWarning    string
 }
 
 type HardwareEstimate struct {
@@ -97,6 +100,13 @@ type PGSuggestion struct {
 type CompareResult struct {
 	Name   string
 	Result Result
+}
+
+func ProtectionString(p ProtectionMode, repl int, ecK, ecM int) string {
+	if p == ProtectionRepl {
+		return fmt.Sprintf("Replication x%d", repl)
+	}
+	return fmt.Sprintf("EC %d+%d", ecK, ecM)
 }
 
 func ParseCapacity(s string) (uint64, error) {
@@ -166,12 +176,26 @@ func Calculate(input Input) Result {
 
 	totalOSDs := int(math.Ceil(float64(rawNeededBytes) / float64(input.DiskSize)))
 
+	isAuto := input.NodeCount == 0
 	nodes := input.NodeCount
-	if nodes == 0 {
+	if isAuto {
 		nodes = int(math.Ceil(float64(totalOSDs) / float64(input.DisksPerNode)))
 		if nodes < 3 {
 			nodes = 3
 		}
+	}
+
+	minSafe := input.ReplFactor
+	if input.Protection == ProtectionEC {
+		minSafe = input.ECK + input.ECM
+	}
+
+	var nodeWarn string
+	if !isAuto && nodes < minSafe {
+		nodeWarn = fmt.Sprintf(
+			"%s recommends ≥%d nodes for full fault isolation. %d nodes may reduce failure tolerance.",
+			ProtectionString(input.Protection, input.ReplFactor, input.ECK, input.ECM),
+			minSafe, nodes)
 	}
 
 	osdsPerNode := int(math.Ceil(float64(totalOSDs) / float64(nodes)))
@@ -202,6 +226,9 @@ func Calculate(input Input) Result {
 		Network:        network,
 		PGSuggestions:  pgSuggestions,
 		Hardware:       hardware,
+		IsAutoNodes:    isAuto,
+		MinSafeNodes:   minSafe,
+		NodeWarning:    nodeWarn,
 	}
 }
 
